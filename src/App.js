@@ -8,10 +8,7 @@ import DoughnutChart from './components/DoughnutChart';
 import { UserData } from './Data'
 
 function App() {
-  //api.openweathermap.org/data/2.5/weather?lat=45.508888&lon=-73.561668&appid=52c15f39d7790c122822827e99ff510a
-  //Weather APi 0ab94dedbd813d91f9d5708865209dfb
 
-  // Static
   const [trigger, setTrigger] = useState(0);
   const cities_list = ['Whitehorse', 'Yellowknife', 'Victoria', 'Edmonton', 'Regina', 'Winnipeg', 'Toronto', 'Quebec City', 'Iqaluit', 'Fredericton', 'Halifax', 'Charlottetown', 'St. John\'s'];
   const [citiesTemperatureInfoList, setCitiesTemperatureInfoList] = useState([]);
