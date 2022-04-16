@@ -1,79 +1,70 @@
-import './App.css';
-import { useEffect, useState } from "react";
+import "./App.css";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { GeoWeatherData } from "./GeoWeatherData";
-import BarChart from './components/BarChart';
-import LineChart from './components/LineChart';
-import PieChart from './components/PieChart';
-import DoughnutChart from './components/DoughnutChart';
-import { UserData } from './Data'
+import BarChart from "./components/BarChart";
 
 function App() {
 
-  const [trigger, setTrigger] = useState(0);
-  const cities_list = ['Whitehorse', 'Yellowknife', 'Victoria', 'Edmonton', 'Regina', 'Winnipeg', 'Toronto', 'Quebec City', 'Iqaluit', 'Fredericton', 'Halifax', 'Charlottetown', 'St. John\'s'];
-  const [citiesTemperatureInfoList, setCitiesTemperatureInfoList] = useState([]);
-  const [cities_list_counter, setCities_list_counter] = useState(0);
+  // Static
+  const cities = useMemo(() => ["Whitehorse", "Yellowknife", "Victoria", "Edmonton", "Regina", "Winnipeg", "Toronto", "Ottawa", "Montreal", "Quebec City", "Iqaluit", "Fredericton", "Halifax", "Charlottetown", "St. John's"], []);
+  const [counter, setCounter] = useState(0);
+  const [citiesTemperatureInfo, setCitiesTemperatureInfo] = useState([]);
 
-  const addCitiesInfo = async (cityName) => {
-    try {
-      const data = await GeoWeatherData(cityName)
-      setCitiesTemperatureInfoList([...citiesTemperatureInfoList, {
-        name: data.name,
-        temperature: data.temperature,
-      }])
-      setCities_list_counter(cities_list_counter + 1);
-    }catch(err){
-      console.error(err);
-    }
-  }
+  const loadWeatherData = useCallback(async (cityName) => {
+    const data = await GeoWeatherData(cityName);
+    setCitiesTemperatureInfo(prevInfo => [...prevInfo, {
+      name: data.name,
+      temperature: data.temperature,
+    }]);
+  }, []);
 
-  // Bar Chart
-  const [cityTemperatureData, setCityTemperatureData] = useState({
-    labels: citiesTemperatureInfoList.map((data) => data.name),
-    datasets: [{
-      label: "Cities' Temperature",
-      data: citiesTemperatureInfoList.map((data) => data.temperature),
-      backgroundColor: ['rgba(54, 162, 235, 0.2)', 'rgba(75, 192, 192, 0.2)', 'rgba(255, 159, 64, 0.2)', 'rgba(255, 99, 132, 0.2)', 'rgba(255, 206, 86, 0.2)'],
-      borderColor: 'black',
-      borderWidth: 2
-    }]
-  })
-  // Bar Chart
+  // Equivalent
+  // const loadWeatherDataMemo = useMemo(() => {
+  //   return async (cityName) => {
+  //     const data = await GeoWeatherData(cityName);
+  //     setCitiesTemperatureInfo(prevInfo => [...prevInfo, {
+  //       name: data.name,
+  //       temperature: data.temperature,
+  //     }]);
+  //   };
+  // }, []);
 
-  // Re-render Bar Chart
-  const updataBarChart = () => {
-    setCityTemperatureData({
-      labels: citiesTemperatureInfoList.map((data) => data.name),
-      datasets: [{
-        label: "Cities' Temperature",
-        data: citiesTemperatureInfoList.map((data) => data.temperature),
-        backgroundColor: ['rgba(54, 162, 235, 0.2)', 'rgba(75, 192, 192, 0.2)', 'rgba(255, 159, 64, 0.2)', 'rgba(255, 99, 132, 0.2)', 'rgba(255, 206, 86, 0.2)'],
-        borderColor: 'black',
-        borderWidth: 2
-      }]
-    })
-  }
-  // Re-render Bar Chart
-
+  const handleUpdateChart = useCallback(() => {
+    setCounter(prevCounter => {
+      if(cities[prevCounter] === undefined) {
+        console.log("All items added");
+        return prevCounter;
+      }
+      return prevCounter + 1;
+    });
+  }, [cities]);
 
   useEffect(() => {
-    if(citiesTemperatureInfoList.length < cities_list.length){
-      addCitiesInfo(cities_list[cities_list_counter]);
-      updataBarChart();
-      console.log(citiesTemperatureInfoList);
-    }
-    else{
-      console.log("All items added")
-    }
-  }, [trigger])
+    const cityName = cities[counter];
+    loadWeatherData(cityName);
+  }, [cities, counter, loadWeatherData]);
 
+  const barChartData = useMemo(() => {
+    return {
+      labels: citiesTemperatureInfo.map((data) => data.name),
+      datasets: [{
+        label: "Cities' Temperature",
+        data: citiesTemperatureInfo.map((data) => data.temperature),
+        backgroundColor: ["rgba(54, 162, 235, 0.2)", "rgba(75, 192, 192, 0.2)", "rgba(255, 159, 64, 0.2)", "rgba(255, 99, 132, 0.2)", "rgba(255, 206, 86, 0.2)"],
+        borderColor: "black",
+        borderWidth: 2
+      }]
+    };
+  }, [citiesTemperatureInfo]);
+  
   return (
     <div className="App">
 
-      <button onClick={() => setTrigger({ cities_list_counter })} className='btn'>Update Chart</button>
+      <button onClick={handleUpdateChart} className='btn'>Update Chart</button>
+      <button className='btn'>Dark Mode</button>
 
       <div style={{ width: 1200}}>
-       <BarChart chartData={cityTemperatureData} />
+        <BarChart chartData={barChartData} />
       </div>
 
     </div>
